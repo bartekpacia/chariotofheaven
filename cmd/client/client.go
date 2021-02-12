@@ -7,11 +7,20 @@ import (
 	"net/url"
 
 	"github.com/gorilla/websocket"
+	"github.com/warthog618/gpiod"
+	"github.com/warthog618/gpiod/device/rpi"
 )
 
 var (
 	host string
 	port string
+)
+
+var (
+	red    *gpiod.Line
+	green  *gpiod.Line
+	yellow *gpiod.Line
+	servo  *gpiod.Line
 )
 
 func init() {
@@ -20,7 +29,36 @@ func init() {
 	flag.StringVar(&port, "port", "8080", "host's port to connect to")
 }
 
+func initGPIO() {
+	chip, err := gpiod.NewChip("gpiochip0", gpiod.WithConsumer("softwire"))
+	if err != nil {
+		log.Fatalln("client: failed to get chip:", err)
+	}
+
+	red, err = chip.RequestLine(rpi.GPIO17)
+	if err != nil {
+		log.Fatalln("client: failed to request GPIO14:", err)
+	}
+
+	green, err = chip.RequestLine(rpi.GPIO22)
+	if err != nil {
+		log.Fatalln("client: failed to request GPIO15:", err)
+	}
+
+	yellow, err = chip.RequestLine(rpi.GPIO27)
+	if err != nil {
+		log.Fatalln("client: failed to request GPIO15:", err)
+	}
+
+	servo, err = chip.RequestLine(rpi.GPIO10)
+	if err != nil {
+		log.Fatalln("client: failed to request GPIO10:", err)
+	}
+}
+
 func main() {
+	initGPIO()
+
 	u := url.URL{
 		Scheme: "ws",
 		Host:   host + ":" + port,

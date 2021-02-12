@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -11,10 +13,6 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-}
-
-func handleHomePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Home Page")
 }
 
 func handleWebsockets(w http.ResponseWriter, r *http.Request) {
@@ -27,34 +25,37 @@ func handleWebsockets(w http.ResponseWriter, r *http.Request) {
 		log.Fatalln("failed to upgrade connection:", err)
 	}
 
-	fmt.Println("server: connection established")
-	err = ws.WriteMessage(1, []byte("Hi Client!"))
+	fmt.Println("connection established")
+	err = ws.WriteMessage(1, []byte("hello to client from server!"))
 	if err != nil {
 		log.Println("failed to write message:", err)
 	}
 
-	listen(ws)
+	inputAndSend(ws)
 }
 
-func listen(conn *websocket.Conn) {
+func inputAndSend(conn *websocket.Conn) {
 	for {
-		messageType, msg, err := conn.ReadMessage()
+		reader := bufio.NewReader(os.Stdin)
+		input, err := reader.ReadString('\n')
 		if err != nil {
-			log.Fatalln(err)
-			return
+			log.Fatalln("failed to read from stdin:", err)
 		}
 
-		fmt.Println("message:", string(msg))
-
-		if err := conn.WriteMessage(messageType, msg); err != nil {
-			log.Println(err)
+		err = conn.WriteMessage(websocket.TextMessage, []byte(input))
+		if err != nil {
+			log.Fatalln("failed to write msg:", err)
 			return
 		}
 	}
 }
 
 func main() {
-	http.HandleFunc("/", handleHomePage)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "you've connected to the chariot server")
+	})
+
 	http.HandleFunc("/ws", handleWebsockets)
+
 	log.Fatal(http.ListenAndServe("localhost:8080", nil))
 }

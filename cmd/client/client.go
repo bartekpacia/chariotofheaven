@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/gorilla/websocket"
 )
 
 var (
-	host string
-	port string
+	host      string
+	port      string
+	serverURL url.URL
 )
 
 func init() {
@@ -21,27 +25,46 @@ func init() {
 }
 
 func main() {
-	u := url.URL{
+	serverURL = url.URL{
 		Scheme: "ws",
 		Host:   host + ":" + port,
 		Path:   "/out",
 	}
 
-	ws, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	ws, err := connect(serverURL)
 	if err != nil {
-		log.Fatalln("client: failed to dial:", err)
+		log.Fatalln("client: failed to connect to server:", err)
 	}
-
 	fmt.Println("client: connected to server")
 
 	listenWebsockets(ws)
+}
+
+func connect(u url.URL) (ws *websocket.Conn, err error) {
+	ws, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return ws, nil
 }
 
 func listenWebsockets(ws *websocket.Conn) {
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
-			log.Fatalln("client: failed to read message from websocket connection:", err)
+			fmt.Println("client: failed to read message from websocket connection")
+
+			for {
+				time.Sleep(3 * time.Second)
+				fmt.Println("client: attempting to reconnect to server")
+				ws, err = connect(serverURL)
+				if err != nil {
+					continue
+				}
+				break
+			}
+			continue
 		}
 
 		matchCommand(string(msg))

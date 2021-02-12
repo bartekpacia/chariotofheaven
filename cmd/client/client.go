@@ -27,14 +27,14 @@ func main() {
 		Path:   "/ws",
 	}
 
-	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
+	ws, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		log.Fatalln("failed to dial:", err)
 	}
 
-	_, msg, err := conn.ReadMessage()
+	_, msg, err := ws.ReadMessage()
 	if err != nil {
-		log.Fatalln("failed to read msg from conn:", err)
+		log.Fatalln("failed to read message from websocket connection:", err)
 	}
 
 	fmt.Println("got message:", string(msg))

@@ -22,19 +22,19 @@ func handleWebsockets(w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Fatalln("failed to upgrade connection:", err)
+		log.Fatalln("failed to upgrade to websocket connection:", err)
 	}
 
 	fmt.Println("connection established")
 	err = ws.WriteMessage(1, []byte("hello to client from server!"))
 	if err != nil {
-		log.Println("failed to write message:", err)
+		log.Println("failed to write message to websocket connection:", err)
 	}
 
 	inputAndSend(ws)
 }
 
-func inputAndSend(conn *websocket.Conn) {
+func inputAndSend(ws *websocket.Conn) {
 	for {
 		reader := bufio.NewReader(os.Stdin)
 		input, err := reader.ReadString('\n')
@@ -42,9 +42,9 @@ func inputAndSend(conn *websocket.Conn) {
 			log.Fatalln("failed to read from stdin:", err)
 		}
 
-		err = conn.WriteMessage(websocket.TextMessage, []byte(input))
+		err = ws.WriteMessage(websocket.TextMessage, []byte(input))
 		if err != nil {
-			log.Fatalln("failed to write msg:", err)
+			log.Fatalln("failed to write message to websocket connection:", err)
 			return
 		}
 	}

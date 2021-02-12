@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
@@ -24,26 +26,31 @@ func main() {
 	u := url.URL{
 		Scheme: "ws",
 		Host:   host + ":" + port,
-		Path:   "/out",
+		Path:   "/in",
 	}
 
 	ws, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		log.Fatalln("client: failed to dial:", err)
+		log.Fatalln("pilot: failed to dial:", err)
 	}
 
-	fmt.Println("client: connected to server")
+	fmt.Println("pilot: connected to server")
 
-	listenWebsockets(ws)
+	inputAndSend(ws)
 }
 
-func listenWebsockets(ws *websocket.Conn) {
+func inputAndSend(ws *websocket.Conn) {
 	for {
-		_, msg, err := ws.ReadMessage()
+		reader := bufio.NewReader(os.Stdin)
+		input, err := reader.ReadString('\n')
 		if err != nil {
-			log.Fatalln("client: failed to read message from websocket connection:", err)
+			log.Fatalln("pilot: failed to read from stdin:", err)
 		}
 
-		fmt.Println("client: got message:", string(msg))
+		err = ws.WriteMessage(websocket.TextMessage, []byte(input))
+		if err != nil {
+			log.Fatalln("pilot: failed to write message to websocket connection:", err)
+			return
+		}
 	}
 }

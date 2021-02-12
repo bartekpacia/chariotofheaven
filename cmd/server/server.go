@@ -1,61 +1,76 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
-func handleWebsockets(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool {
-		return true
+var (
+	upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
 	}
 
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Fatalln("failed to upgrade to websocket connection:", err)
-	}
-
-	fmt.Println("connection established")
-	err = ws.WriteMessage(1, []byte("hello to client from server!"))
-	if err != nil {
-		log.Println("failed to write message to websocket connection:", err)
-	}
-
-	inputAndSend(ws)
-}
-
-func inputAndSend(ws *websocket.Conn) {
-	for {
-		reader := bufio.NewReader(os.Stdin)
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			log.Fatalln("failed to read from stdin:", err)
-		}
-
-		err = ws.WriteMessage(websocket.TextMessage, []byte(input))
-		if err != nil {
-			log.Fatalln("failed to write message to websocket connection:", err)
-			return
-		}
-	}
-}
+	events = make(chan string)
+)
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "you've connected to the chariot server")
 	})
 
-	http.HandleFunc("/ws", handleWebsockets)
+	http.HandleFunc("/in", handleInWebsockets)
+	http.HandleFunc("/out", handleOutWebsockets)
 
 	log.Fatal(http.ListenAndServe("localhost:8080", nil))
+}
+
+func handleInWebsockets(w http.ResponseWriter, r *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool {
+		return true
+	}
+
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Fatalln("server: failed to upgrade INPUT to websocket connection:", err)
+	}
+
+	fmt.Println("server: pilot connected")
+
+	for {
+		_, msg, err := ws.ReadMessage()
+		if err != nil {
+			log.Fatalln("server: failed to read message from INPUT websocket connection:", err)
+		}
+
+		events <- string(msg)
+		fmt.Println("server: received event:", string(msg))
+	}
+}
+
+func handleOutWebsockets(w http.ResponseWriter, r *http.Request) {
+	upgrader.CheckOrigin = func(r *http.Request) bool {
+		return true
+	}
+
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Fatalln("server: failed to upgrade OUTPUT to websocket connection:", err)
+	}
+
+	fmt.Println("server: client connected")
+
+	for {
+		select {
+		case event := <-events:
+			fmt.Println("server: sent event:", event)
+			err = ws.WriteMessage(websocket.BinaryMessage, []byte(event))
+			if err != nil {
+				log.Println("server: failed to write message to /out websocket connection:", err)
+			}
+		}
+	}
 }

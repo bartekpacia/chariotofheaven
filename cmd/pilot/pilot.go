@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -46,6 +47,8 @@ func inputAndSend(ws *websocket.Conn) {
 		if err != nil {
 			log.Fatalln("pilot: failed to read from stdin:", err)
 		}
+
+		input = strings.TrimSuffix(input, "\n")
 
 		err = ws.WriteMessage(websocket.TextMessage, []byte(input))
 		if err != nil {

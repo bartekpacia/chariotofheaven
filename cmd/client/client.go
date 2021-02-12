@@ -44,6 +44,25 @@ func listenWebsockets(ws *websocket.Conn) {
 			log.Fatalln("client: failed to read message from websocket connection:", err)
 		}
 
-		fmt.Println("client: got message:", string(msg))
+		matchCommand(string(msg))
+
+		fmt.Printf("client: received command: %#v\n", string(msg))
+	}
+}
+
+func matchCommand(command string) {
+	switch command {
+	case "w":
+		// start moving forward
+	case "b":
+		// start moving backward
+	case "a":
+		// start turning left
+	case "d":
+		// start turning right
+	case "z":
+		// stop turning
+	case "x":
+		// stop moving and turning
 	}
 }

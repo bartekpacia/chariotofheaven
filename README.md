@@ -7,6 +7,6 @@
 
 - `a` start turning left
 - `d` start turning tight
-- `x` stop turning
+- `z` stop turning
 
 - `x` stop all

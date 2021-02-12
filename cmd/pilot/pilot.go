@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/gorilla/websocket"
 )
@@ -43,14 +42,14 @@ func main() {
 func inputAndSend(ws *websocket.Conn) {
 	for {
 		reader := bufio.NewReader(os.Stdin)
-		input, err := reader.ReadString('\n')
+		input, err := reader.ReadByte()
 		if err != nil {
 			log.Fatalln("pilot: failed to read from stdin:", err)
 		}
 
-		input = strings.TrimSuffix(input, "\n")
+		//input = strings.TrimSuffix(input, "\n")
 
-		err = ws.WriteMessage(websocket.TextMessage, []byte(input))
+		err = ws.WriteMessage(websocket.TextMessage, []byte{input})
 		if err != nil {
 			log.Fatalln("pilot: failed to write message to websocket connection:", err)
 			return

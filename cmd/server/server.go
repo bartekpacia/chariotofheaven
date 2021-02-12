@@ -14,7 +14,7 @@ var (
 		WriteBufferSize: 1024,
 	}
 
-	events = make(chan string)
+	commands = make(chan string)
 )
 
 func main() {
@@ -46,8 +46,8 @@ func handleInWebsockets(w http.ResponseWriter, r *http.Request) {
 			log.Fatalln("server: failed to read message from INPUT websocket connection:", err)
 		}
 
-		events <- string(msg)
-		fmt.Println("server: received event:", string(msg))
+		commands <- string(msg)
+		fmt.Printf("server: received command: %#v\n", string(msg))
 	}
 }
 
@@ -65,8 +65,8 @@ func handleOutWebsockets(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		select {
-		case event := <-events:
-			fmt.Println("server: sent event:", event)
+		case event := <-commands:
+			fmt.Printf("server: sent command: %#v\n", event)
 			err = ws.WriteMessage(websocket.BinaryMessage, []byte(event))
 			if err != nil {
 				log.Println("server: failed to write message to /out websocket connection:", err)

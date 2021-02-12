@@ -1,5 +1,7 @@
 # Chariot of Heaven
 
+Take a look at [the project overview](project.pdf) to learn more.
+
 ### Commands
 
 - `w` start moving forward

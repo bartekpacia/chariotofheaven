@@ -15,7 +15,9 @@ import (
 )
 
 var (
+	// Host with server running to connect to.
 	host string
+	// Port on host to connect to, on which the server is listening.
 	port string
 )
 
@@ -88,19 +90,19 @@ func main() {
 	initGPIO()
 	initBlink()
 
-	serverURL := url.URL{
+	u := url.URL{
 		Scheme: "ws",
 		Host:   host + ":" + port,
 		Path:   "/out",
 	}
 
-	ws, err := connect(serverURL)
+	ws, err := connect(u)
 	if err != nil {
 		log.Fatalln("client: failed to connect to server:", err)
 	}
 	fmt.Println("client: connected to server")
 
-	listenWebsockets(serverURL, ws)
+	listenWebsockets(u, ws)
 }
 
 func connect(u url.URL) (ws *websocket.Conn, err error) {
@@ -164,7 +166,7 @@ func matchCommand(command string) {
 func startStepping() {
 	for {
 		step.SetValue(1)
-		time.After(1 * time.Second)
+		time.After(time.Second * 1)
 		step.SetValue(1)
 	}
 

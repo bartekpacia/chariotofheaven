@@ -144,11 +144,11 @@ func matchCommand(command string) {
 		red.SetValue(1)
 	case "a":
 		dir.SetValue(0)
-		startStepping()
+		go startStepping()
 		// start turning left
 	case "d":
 		dir.SetValue(1)
-		startStepping()
+		go startStepping()
 		// start turning right
 	case "z":
 		// stop turning

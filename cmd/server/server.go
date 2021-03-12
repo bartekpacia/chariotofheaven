@@ -68,7 +68,7 @@ func handleOutWebsockets(w http.ResponseWriter, r *http.Request) {
 	for {
 		event := <-commands
 		fmt.Printf("server: sent command: %#v\n", event)
-		err = ws.WriteMessage(websocket.BinaryMessage, []byte(event))
+		err = ws.WriteMessage(websocket.TextMessage, []byte(event))
 		if err != nil {
 			log.Fatalln("server: failed to write message to /out websocket connection:", err)
 		}

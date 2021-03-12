@@ -38,7 +38,7 @@ var (
 
 const (
 	MoveForward  = "w"
-	MoveBackward = "b"
+	MoveBackward = "s"
 	MoveStop     = "q"
 
 	TurnLeft  = "a"
@@ -181,20 +181,20 @@ func processCommands() {
 
 		case TurnLeft:
 			dir.SetValue(0)
-			turnChan <- struct{}{}
+			//turnChan <- struct{}{}
 			go startStepping()
 
 		case TurnRight:
 			dir.SetValue(1)
-			turnChan <- struct{}{}
+			//turnChan <- struct{}{}
 			go startStepping()
 
 		case TurnStop:
-			turnChan <- struct{}{}
+			//turnChan <- struct{}{}
 
 		case StopAll:
 			resetMovePins()
-			turnChan <- struct{}{}
+			//turnChan <- struct{}{}
 			yellow.SetValue(1)
 
 		default:

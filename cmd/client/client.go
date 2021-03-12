@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/pkg/errors"
@@ -22,8 +24,9 @@ var (
 )
 
 var (
-	commands = make(chan string)
-	turnChan = make(chan struct{})
+	commands   = make(chan string)
+	turnChan   = make(chan struct{})
+	signalChan = make(chan os.Signal, 1)
 )
 
 // Pins used to communicate with physical parts.
@@ -107,6 +110,13 @@ func initBlink() {
 
 func main() {
 	flag.Parse()
+	signal.Notify(signalChan, os.Interrupt)
+	go func() {
+		<-signalChan
+		resetMovePins()
+		os.Exit(0)
+	}()
+
 	initGPIO()
 	initBlink()
 

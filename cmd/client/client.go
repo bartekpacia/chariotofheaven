@@ -15,9 +15,8 @@ import (
 )
 
 var (
-	host      string
-	port      string
-	serverURL url.URL
+	host string
+	port string
 )
 
 var (
@@ -64,7 +63,7 @@ func main() {
 	flag.Parse()
 	initGPIO()
 
-	serverURL = url.URL{
+	serverURL := url.URL{
 		Scheme: "ws",
 		Host:   host + ":" + port,
 		Path:   "/out",
@@ -76,7 +75,7 @@ func main() {
 	}
 	fmt.Println("client: connected to server")
 
-	listenWebsockets(ws)
+	listenWebsockets(serverURL, ws)
 }
 
 func connect(u url.URL) (ws *websocket.Conn, err error) {
@@ -88,7 +87,7 @@ func connect(u url.URL) (ws *websocket.Conn, err error) {
 	return ws, nil
 }
 
-func listenWebsockets(ws *websocket.Conn) {
+func listenWebsockets(u url.URL, ws *websocket.Conn) {
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
@@ -97,7 +96,7 @@ func listenWebsockets(ws *websocket.Conn) {
 			for {
 				time.Sleep(3 * time.Second)
 				fmt.Println("client: attempting to reconnect to server")
-				ws, err = connect(serverURL)
+				ws, err = connect(u)
 				if err != nil {
 					continue
 				}

@@ -230,7 +230,7 @@ func startStepping() {
 	for {
 		select {
 		case <-turnChan:
-
+			return
 		case <-time.After(time.Millisecond * 500):
 			step.SetValue(0)
 			<-time.After(time.Millisecond * 500)

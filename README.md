@@ -12,3 +12,21 @@ Take a look at [the project overview](project.pdf) to learn more.
 - `z` stop turning
 
 - `x` stop all
+
+### Wiring
+
+**Info diodes**
+
+- red - GPIO17
+- green - GPIO22
+- yellow - GPIO27
+
+**Servo**
+
+- servo - GPIO10
+
+\*_Stepper motor_
+stepper motor driver: MP6500 Pololu 2966
+
+- DIR - GPIO21
+- STEP - GPIO20

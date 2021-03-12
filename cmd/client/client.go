@@ -39,17 +39,7 @@ var (
 	step   *gpiod.Line
 )
 
-const (
-	MoveForward  = "w"
-	MoveBackward = "s"
-	MoveStop     = "q"
-
-	TurnLeft  = "a"
-	TurnRight = "d"
-	TurnStop  = "z"
-
-	StopAll = "x"
-)
+const StopAll = "x"
 
 func init() {
 	log.SetFlags(0)

@@ -129,10 +129,9 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 			}
 			continue
 		}
+		fmt.Printf("client: received command: %#v\n", string(msg))
 
 		matchCommand(string(msg))
-
-		fmt.Printf("client: received command: %#v\n", string(msg))
 	}
 }
 

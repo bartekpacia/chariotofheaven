@@ -64,7 +64,7 @@ func initBlink() {
 	green.SetValue(1)
 	yellow.SetValue(1)
 
-	time.After(time.Millisecond * 500)
+	time.After(time.Second * 1)
 
 	red.SetValue(0)
 	green.SetValue(0)

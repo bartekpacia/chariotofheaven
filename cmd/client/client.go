@@ -57,7 +57,10 @@ func initGPIO() {
 }
 
 func main() {
+	flag.Parse()
 	initGPIO()
+
+	fmt.Println("host:", host)
 
 	u := url.URL{
 		Scheme: "ws",

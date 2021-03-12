@@ -115,8 +115,10 @@ func matchCommand(command string) {
 	switch command {
 	case "w":
 		// start moving forward
+		green.SetValue(1)
 	case "b":
 		// start moving backward
+		red.SetValue(1)
 	case "a":
 		// start turning left
 	case "d":
@@ -124,6 +126,6 @@ func matchCommand(command string) {
 	case "z":
 		// stop turning
 	case "x":
-		// stop moving and turning
+		yellow.SetValue(1)
 	}
 }

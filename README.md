@@ -6,6 +6,7 @@ Take a look at [the project overview](project.pdf) to learn more.
 
 - `w` start moving forward
 - `s` start moving backward
+- `q` stop moving
 
 - `a` start turning left
 - `d` start turning tight

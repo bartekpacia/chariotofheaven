@@ -22,12 +22,30 @@ var (
 )
 
 var (
+	commands = make(chan string)
+	turnChan = make(chan struct{})
+)
+
+// Pins used to communicate with physical parts.
+var (
 	red    *gpiod.Line
 	green  *gpiod.Line
 	yellow *gpiod.Line
 	servo  *gpiod.Line
 	dir    *gpiod.Line
 	step   *gpiod.Line
+)
+
+const (
+	MoveForward  = "w"
+	MoveBackward = "b"
+	MoveStop     = "q"
+
+	TurnLeft  = "a"
+	TurnRight = "d"
+	TurnStop  = "z"
+
+	StopAll = "x"
 )
 
 func init() {
@@ -42,17 +60,17 @@ func initGPIO() {
 		log.Fatalln("client: failed to get chip:", err)
 	}
 
-	red, err = chip.RequestLine(rpi.GPIO17, gpiod.AsOutput())
+	red, err = chip.RequestLine(rpi.GPIO17, gpiod.AsOutput(1))
 	if err != nil {
 		log.Fatalln("client: failed to request GPIO14 (red):", err)
 	}
 
-	green, err = chip.RequestLine(rpi.GPIO22, gpiod.AsOutput())
+	green, err = chip.RequestLine(rpi.GPIO22, gpiod.AsOutput(1))
 	if err != nil {
 		log.Fatalln("client: failed to request GPIO15 (green):", err)
 	}
 
-	yellow, err = chip.RequestLine(rpi.GPIO27, gpiod.AsOutput())
+	yellow, err = chip.RequestLine(rpi.GPIO27, gpiod.AsOutput(1))
 	if err != nil {
 		log.Fatalln("client: failed to request GPIO15 (yellow):", err)
 	}
@@ -74,6 +92,8 @@ func initGPIO() {
 }
 
 func initBlink() {
+	time.After(time.Second * 1)
+
 	red.SetValue(1)
 	green.SetValue(1)
 	yellow.SetValue(1)
@@ -102,6 +122,7 @@ func main() {
 	}
 	fmt.Println("client: connected to server")
 
+	go processCommands()
 	listenWebsockets(u, ws)
 }
 
@@ -116,7 +137,7 @@ func connect(u url.URL) (ws *websocket.Conn, err error) {
 
 func listenWebsockets(u url.URL, ws *websocket.Conn) {
 	for {
-		_, msg, err := ws.ReadMessage()
+		msgType, msg, err := ws.ReadMessage()
 		if err != nil {
 			fmt.Println("client: failed to read message from websocket connection")
 
@@ -131,43 +152,67 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 			}
 			continue
 		}
-		fmt.Printf("client: received command: %#v\n", string(msg))
 
-		matchCommand(string(msg))
+		if msgType != websocket.TextMessage {
+			log.Fatalln("client: received message of type other than TextMessage")
+		}
+
+		fmt.Printf("client: received command: %#v\n", string(msg))
+		commands <- string(msg)
 	}
 }
 
-func matchCommand(command string) {
-	switch command {
-	case "w":
-		resetMovePins()
-		green.SetValue(1)
-	case "b":
-		resetMovePins()
-		red.SetValue(1)
-	case "a":
-		dir.SetValue(0)
-		go startStepping()
-		// start turning left
-	case "d":
-		dir.SetValue(1)
-		go startStepping()
-		// start turning right
-	case "z":
+func processCommands() {
+	for {
+		command := <-commands
 
-	case "x":
-		resetMovePins()
-		yellow.SetValue(1)
-	default:
-		fmt.Printf("command %s not matched\n", command)
+		switch command {
+		case MoveForward:
+			resetMovePins()
+			green.SetValue(1)
+
+		case MoveBackward:
+			resetMovePins()
+			red.SetValue(1)
+
+		case MoveStop:
+			resetMovePins()
+			yellow.SetValue(1)
+
+		case TurnLeft:
+			dir.SetValue(0)
+			turnChan <- struct{}{}
+			go startStepping()
+
+		case TurnRight:
+			dir.SetValue(1)
+			turnChan <- struct{}{}
+			go startStepping()
+
+		case TurnStop:
+			turnChan <- struct{}{}
+
+		case StopAll:
+			resetMovePins()
+			turnChan <- struct{}{}
+			yellow.SetValue(1)
+
+		default:
+			fmt.Printf("command %s not matched\n", command)
+		}
 	}
 }
 
 func startStepping() {
 	for {
-		step.SetValue(1)
-		time.After(time.Second * 1)
-		step.SetValue(1)
+		select {
+		case <-turnChan:
+
+		case <-time.After(time.Millisecond * 500):
+			step.SetValue(1)
+			time.After(time.Millisecond * 500)
+			step.SetValue(1)
+		}
 	}
 
 }

@@ -18,6 +18,7 @@ var (
 )
 
 func main() {
+	log.SetFlags(0)
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "you've connected to the chariot server")
 	})
@@ -43,7 +44,8 @@ func handleInWebsockets(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
-			log.Fatalln("server: failed to read message from INPUT websocket connection:", err)
+			fmt.Println("server: pilot disconnected")
+			break
 		}
 
 		commands <- string(msg)
@@ -64,13 +66,11 @@ func handleOutWebsockets(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("server: client connected")
 
 	for {
-		select {
-		case event := <-commands:
-			fmt.Printf("server: sent command: %#v\n", event)
-			err = ws.WriteMessage(websocket.BinaryMessage, []byte(event))
-			if err != nil {
-				log.Println("server: failed to write message to /out websocket connection:", err)
-			}
+		event := <-commands
+		fmt.Printf("server: sent command: %#v\n", event)
+		err = ws.WriteMessage(websocket.BinaryMessage, []byte(event))
+		if err != nil {
+			log.Fatalln("server: failed to write message to /out websocket connection:", err)
 		}
 	}
 }

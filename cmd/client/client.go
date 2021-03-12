@@ -24,6 +24,8 @@ var (
 	green  *gpiod.Line
 	yellow *gpiod.Line
 	servo  *gpiod.Line
+	dir    *gpiod.Line
+	step   *gpiod.Line
 )
 
 func init() {
@@ -40,22 +42,32 @@ func initGPIO() {
 
 	red, err = chip.RequestLine(rpi.GPIO17, gpiod.AsOutput())
 	if err != nil {
-		log.Fatalln("client: failed to request GPIO14:", err)
+		log.Fatalln("client: failed to request GPIO14 (red):", err)
 	}
 
 	green, err = chip.RequestLine(rpi.GPIO22, gpiod.AsOutput())
 	if err != nil {
-		log.Fatalln("client: failed to request GPIO15:", err)
+		log.Fatalln("client: failed to request GPIO15 (green):", err)
 	}
 
 	yellow, err = chip.RequestLine(rpi.GPIO27, gpiod.AsOutput())
 	if err != nil {
-		log.Fatalln("client: failed to request GPIO15:", err)
+		log.Fatalln("client: failed to request GPIO15 (yellow):", err)
 	}
 
 	servo, err = chip.RequestLine(rpi.GPIO10, gpiod.AsOutput())
 	if err != nil {
-		log.Fatalln("client: failed to request GPIO10:", err)
+		log.Fatalln("client: failed to request GPIO10 (servo):", err)
+	}
+
+	dir, err = chip.RequestLine(rpi.GPIO21, gpiod.AsOutput())
+	if err != nil {
+		log.Fatalln("client: failed to request GPIO21 (dir):", err)
+	}
+
+	step, err = chip.RequestLine(rpi.GPIO20, gpiod.AsOutput())
+	if err != nil {
+		log.Fatalln("client: failed to request GPIO20 (step):", err)
 	}
 }
 
@@ -125,15 +137,19 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 }
 
 func matchCommand(command string) {
-	resetAllPins()
+	resetMovePins()
 	switch command {
 	case "w":
 		green.SetValue(1)
 	case "b":
 		red.SetValue(1)
 	case "a":
+		dir.SetValue(0)
+		startStepping()
 		// start turning left
 	case "d":
+		dir.SetValue(1)
+		startStepping()
 		// start turning right
 	case "z":
 		// stop turning
@@ -144,7 +160,16 @@ func matchCommand(command string) {
 	}
 }
 
-func resetAllPins() {
+func startStepping() {
+	for {
+		step.SetValue(1)
+		time.After(1 * time.Second)
+		step.SetValue(1)
+	}
+
+}
+
+func resetMovePins() {
 	red.SetValue(0)
 	green.SetValue(0)
 	yellow.SetValue(0)

@@ -95,13 +95,25 @@ func initGPIO() {
 }
 
 func initBlink() {
-	time.After(time.Second * 1)
+	time.Sleep(time.Millisecond * 500)
 
 	red.SetValue(1)
 	green.SetValue(1)
 	yellow.SetValue(1)
 
-	time.After(time.Second * 1)
+	time.Sleep(time.Millisecond * 500)
+
+	red.SetValue(0)
+	green.SetValue(0)
+	yellow.SetValue(0)
+
+	time.Sleep(time.Millisecond * 500)
+
+	red.SetValue(1)
+	green.SetValue(1)
+	yellow.SetValue(1)
+
+	time.Sleep(time.Millisecond * 500)
 
 	red.SetValue(0)
 	green.SetValue(0)
@@ -221,7 +233,7 @@ func startStepping() {
 
 		case <-time.After(time.Millisecond * 500):
 			step.SetValue(0)
-			time.After(time.Millisecond * 500)
+			<-time.After(time.Millisecond * 500)
 			step.SetValue(1)
 		}
 	}

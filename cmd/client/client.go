@@ -125,12 +125,11 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 }
 
 func matchCommand(command string) {
+	resetAllPins()
 	switch command {
 	case "w":
-		// start moving forward
 		green.SetValue(1)
 	case "b":
-		// start moving backward
 		red.SetValue(1)
 	case "a":
 		// start turning left
@@ -143,4 +142,10 @@ func matchCommand(command string) {
 	default:
 		fmt.Printf("command %s not matched\n", command)
 	}
+}
+
+func resetAllPins() {
+	red.SetValue(0)
+	green.SetValue(0)
+	yellow.SetValue(0)
 }

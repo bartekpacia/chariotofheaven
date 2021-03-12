@@ -114,6 +114,7 @@ func main() {
 	go func() {
 		<-signalChan
 		resetMovePins()
+		fmt.Println("client: shutting down...")
 		os.Exit(0)
 	}()
 
@@ -219,7 +220,7 @@ func startStepping() {
 		case <-turnChan:
 
 		case <-time.After(time.Millisecond * 500):
-			step.SetValue(1)
+			step.SetValue(0)
 			time.After(time.Millisecond * 500)
 			step.SetValue(1)
 		}

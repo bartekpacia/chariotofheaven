@@ -25,7 +25,7 @@ func main() {
 	http.HandleFunc("/in", handleInWebsockets)
 	http.HandleFunc("/out", handleOutWebsockets)
 
-	log.Fatal(http.ListenAndServe("localhost:8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func handleInWebsockets(w http.ResponseWriter, r *http.Request) {

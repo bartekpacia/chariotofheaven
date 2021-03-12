@@ -38,22 +38,22 @@ func initGPIO() {
 		log.Fatalln("client: failed to get chip:", err)
 	}
 
-	red, err = chip.RequestLine(rpi.GPIO17)
+	red, err = chip.RequestLine(rpi.GPIO17, gpiod.AsOutput())
 	if err != nil {
 		log.Fatalln("client: failed to request GPIO14:", err)
 	}
 
-	green, err = chip.RequestLine(rpi.GPIO22)
+	green, err = chip.RequestLine(rpi.GPIO22, gpiod.AsOutput())
 	if err != nil {
 		log.Fatalln("client: failed to request GPIO15:", err)
 	}
 
-	yellow, err = chip.RequestLine(rpi.GPIO27)
+	yellow, err = chip.RequestLine(rpi.GPIO27, gpiod.AsOutput())
 	if err != nil {
 		log.Fatalln("client: failed to request GPIO15:", err)
 	}
 
-	servo, err = chip.RequestLine(rpi.GPIO10)
+	servo, err = chip.RequestLine(rpi.GPIO10, gpiod.AsOutput())
 	if err != nil {
 		log.Fatalln("client: failed to request GPIO10:", err)
 	}

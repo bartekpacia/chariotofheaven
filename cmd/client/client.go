@@ -59,9 +59,22 @@ func initGPIO() {
 	}
 }
 
+func initBlink() {
+	red.SetValue(1)
+	green.SetValue(1)
+	yellow.SetValue(1)
+
+	time.After(time.Millisecond * 500)
+
+	red.SetValue(0)
+	green.SetValue(0)
+	yellow.SetValue(0)
+}
+
 func main() {
 	flag.Parse()
 	initGPIO()
+	initBlink()
 
 	serverURL := url.URL{
 		Scheme: "ws",

@@ -127,5 +127,7 @@ func matchCommand(command string) {
 		// stop turning
 	case "x":
 		yellow.SetValue(1)
+	default:
+		fmt.Printf("command %s not matched\n", command)
 	}
 }

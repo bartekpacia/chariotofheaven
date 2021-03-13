@@ -161,35 +161,34 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 
 		fmt.Printf("client: received command: %#v\n", string(msg))
 
-		chariot.ExecuteCommand(string(msg))
+		chariot.InterpretCommand(string(msg))
+		processCommands(&chariot)
 	}
 }
 
 func processCommands(c *Chariot) {
-	for {
-		switch c.MovingState {
-		case MovingForward:
-			setActivePins(green)
+	switch c.MovingState {
+	case MovingForward:
+		setActivePins(green)
 
-		case MovingBackward:
-			setActivePins(red)
+	case MovingBackward:
+		setActivePins(red)
 
-		case NotMoving:
-			setActivePins(yellow)
-		}
+	case NotMoving:
+		setActivePins(yellow)
+	}
 
-		switch c.TurningDirection {
-		case Left:
-			dir.SetValue(0)
-		case Right:
-			dir.SetValue(1)
-		}
+	switch c.TurningDirection {
+	case Left:
+		dir.SetValue(0)
+	case Right:
+		dir.SetValue(1)
+	}
 
-		if c.Turning {
-			step.SetValue(0)
-			time.Sleep(time.Millisecond * 100)
-			step.SetValue(1)
-		}
+	if c.Turning {
+		step.SetValue(0)
+		time.Sleep(time.Millisecond * 100)
+		step.SetValue(1)
 	}
 }
 

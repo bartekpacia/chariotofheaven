@@ -21,7 +21,7 @@ type Chariot struct {
 	Turning          bool
 }
 
-func (cs *Chariot) ExecuteCommand(command string) {
+func (cs *Chariot) InterpretCommand(command string) {
 	// Move commands
 	switch command {
 	case MoveForward:

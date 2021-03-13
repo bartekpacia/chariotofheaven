@@ -21,6 +21,8 @@ var (
 	host string
 	// Port on host to connect to, on which the server is listening.
 	port string
+
+	interval int
 )
 
 var (
@@ -43,6 +45,7 @@ func init() {
 	log.SetFlags(0)
 	flag.StringVar(&host, "host", "localhost", "host to connect to")
 	flag.StringVar(&port, "port", "8080", "host's port to connect to")
+	flag.IntVar(&interval, "interval", 50, "stepper motor interval")
 }
 
 func initGPIO() {
@@ -191,7 +194,7 @@ func startTurner() {
 	for {
 		if chariot.Turning {
 			step.SetValue(0)
-			time.Sleep(time.Millisecond * 1)
+			time.Sleep(time.Millisecond * time.Duration(interval))
 			step.SetValue(1)
 		} else {
 			step.SetValue(0)

@@ -190,10 +190,11 @@ func execute(c *Chariot) {
 func startTurner() {
 	for {
 		if chariot.Turning {
-			fmt.Println("turning!!!")
 			step.SetValue(0)
 			time.Sleep(time.Millisecond * 300)
 			step.SetValue(1)
+		} else {
+			step.SetValue(0)
 		}
 	}
 }

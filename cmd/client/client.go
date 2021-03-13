@@ -24,7 +24,6 @@ var (
 )
 
 var (
-	stopChan   = make(chan struct{})
 	signalChan = make(chan os.Signal, 1)
 )
 
@@ -107,12 +106,6 @@ func main() {
 	initGPIO()
 	initBlink()
 
-	chariot = Chariot{
-		MovingState:      NotMoving,
-		TurningDirection: Left,
-		Turning:          false,
-	}
-
 	u := url.URL{
 		Scheme: "ws",
 		Host:   host + ":" + port,
@@ -124,6 +117,14 @@ func main() {
 		log.Fatalln("client: failed to connect to server:", err)
 	}
 	fmt.Println("client: connected to server")
+
+	chariot = Chariot{
+		MovingState:      NotMoving,
+		TurningDirection: Left,
+		Turning:          false,
+	}
+
+	go startTurner()
 
 	listenWebsockets(u, ws)
 }
@@ -162,11 +163,11 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 		fmt.Printf("client: received command: %#v\n", string(msg))
 
 		chariot.InterpretCommand(string(msg))
-		processCommands(&chariot)
+		execute(&chariot)
 	}
 }
 
-func processCommands(c *Chariot) {
+func execute(c *Chariot) {
 	switch c.MovingState {
 	case MovingForward:
 		setActivePins(green)
@@ -184,11 +185,15 @@ func processCommands(c *Chariot) {
 	case Right:
 		dir.SetValue(1)
 	}
+}
 
-	if c.Turning {
-		step.SetValue(0)
-		time.Sleep(time.Millisecond * 100)
-		step.SetValue(1)
+func startTurner() {
+	for {
+		if chariot.Turning {
+			step.SetValue(0)
+			time.Sleep(time.Millisecond * 100)
+			step.SetValue(1)
+		}
 	}
 }
 

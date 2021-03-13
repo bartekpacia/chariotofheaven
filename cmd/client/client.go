@@ -193,9 +193,10 @@ func execute(c *Chariot) {
 func startTurner() {
 	for {
 		if chariot.Turning {
+			step.SetValue(1)
+			time.Sleep(time.Millisecond * time.Duration(interval))
 			step.SetValue(0)
 			time.Sleep(time.Millisecond * time.Duration(interval))
-			step.SetValue(1)
 		} else {
 			step.SetValue(0)
 		}

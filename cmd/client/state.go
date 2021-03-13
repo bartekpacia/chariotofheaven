@@ -1,22 +1,62 @@
 package main
 
-type MoveState string
+type MovingState int
 
 const (
-	MoveForward  MoveState = "w"
-	MoveBackward MoveState = "s"
-	MoveStop     MoveState = "q"
+	MovingForward MovingState = iota + 1
+	MovingBackward
+	NotMoving
 )
 
-type TurnState string
+type TurningDirection int
 
 const (
-	TurnLeft  TurnState = "a"
-	TurnRight TurnState = "d"
-	TurnStop  TurnState = "z"
+	Left TurningDirection = iota + 1
+	Right
 )
 
 type Chariot struct {
-	moveState MoveState
-	turnState TurnState
+	MovingState      MovingState
+	TurningDirection TurningDirection
+	Turning          bool
+}
+
+func (cs *Chariot) ExecuteCommand(command string) {
+	// Move commands
+	switch command {
+	case MoveForward:
+		cs.MovingState = MovingForward
+		return
+
+	case MoveBackward:
+		cs.MovingState = MovingBackward
+		return
+
+	case MoveStop:
+		cs.MovingState = NotMoving
+		return
+	}
+
+	// Turn commands
+	switch command {
+	case TurnLeft:
+		cs.TurningDirection = Left
+		cs.Turning = true
+		return
+
+	case TurnRight:
+		cs.TurningDirection = Right
+		cs.Turning = true
+		return
+
+	case TurnStop:
+		cs.Turning = false
+		return
+	}
+
+	if command == StopAll {
+		cs.MovingState = NotMoving
+		cs.Turning = false
+		return
+	}
 }

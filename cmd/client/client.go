@@ -24,8 +24,7 @@ var (
 )
 
 var (
-	commands   = make(chan string)
-	turnChan   = make(chan struct{})
+	stopChan   = make(chan struct{})
 	signalChan = make(chan os.Signal, 1)
 )
 
@@ -39,7 +38,7 @@ var (
 	step   *gpiod.Line
 )
 
-const StopAll = "x"
+var chariot Chariot
 
 func init() {
 	log.SetFlags(0)
@@ -86,28 +85,13 @@ func initGPIO() {
 
 func initBlink() {
 	time.Sleep(time.Millisecond * 500)
-
-	red.SetValue(1)
-	green.SetValue(1)
-	yellow.SetValue(1)
-
+	setActivePins(red, green, yellow)
 	time.Sleep(time.Millisecond * 500)
-
-	red.SetValue(0)
-	green.SetValue(0)
-	yellow.SetValue(0)
-
+	setActivePins()
 	time.Sleep(time.Millisecond * 500)
-
-	red.SetValue(1)
-	green.SetValue(1)
-	yellow.SetValue(1)
-
+	setActivePins(red, green, yellow)
 	time.Sleep(time.Millisecond * 500)
-
-	red.SetValue(0)
-	green.SetValue(0)
-	yellow.SetValue(0)
+	setActivePins()
 }
 
 func main() {
@@ -115,13 +99,19 @@ func main() {
 	signal.Notify(signalChan, os.Interrupt)
 	go func() {
 		<-signalChan
-		resetMovePins()
+		setActivePins()
 		fmt.Println("client: shutting down...")
 		os.Exit(0)
 	}()
 
 	initGPIO()
 	initBlink()
+
+	chariot = Chariot{
+		MovingState:      NotMoving,
+		TurningDirection: Left,
+		Turning:          false,
+	}
 
 	u := url.URL{
 		Scheme: "ws",
@@ -135,7 +125,6 @@ func main() {
 	}
 	fmt.Println("client: connected to server")
 
-	go processCommands()
 	listenWebsockets(u, ws)
 }
 
@@ -171,67 +160,50 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 		}
 
 		fmt.Printf("client: received command: %#v\n", string(msg))
-		commands <- string(msg)
+
+		chariot.ExecuteCommand(string(msg))
 	}
 }
 
-func processCommands() {
+func processCommands(c *Chariot) {
 	for {
-		command := <-commands
+		switch c.MovingState {
+		case MovingForward:
+			setActivePins(green)
 
-		switch command {
-		case MoveForward:
-			resetMovePins()
-			green.SetValue(1)
+		case MovingBackward:
+			setActivePins(red)
 
-		case MoveBackward:
-			resetMovePins()
-			red.SetValue(1)
-
-		case MoveStop:
-			resetMovePins()
-			yellow.SetValue(1)
-
-		case TurnLeft:
-			dir.SetValue(0)
-			//turnChan <- struct{}{}
-			go startStepping()
-
-		case TurnRight:
-			dir.SetValue(1)
-			//turnChan <- struct{}{}
-			go startStepping()
-
-		case TurnStop:
-			//turnChan <- struct{}{}
-
-		case StopAll:
-			resetMovePins()
-			//turnChan <- struct{}{}
-			yellow.SetValue(1)
-
-		default:
-			fmt.Printf("command %s not matched\n", command)
+		case NotMoving:
+			setActivePins(yellow)
 		}
-	}
-}
 
-func startStepping() {
-	for {
-		select {
-		case <-turnChan:
-			return
-		case <-time.After(time.Millisecond * 500):
+		switch c.TurningDirection {
+		case Left:
+			dir.SetValue(0)
+		case Right:
+			dir.SetValue(1)
+		}
+
+		if c.Turning {
 			step.SetValue(0)
-			<-time.After(time.Millisecond * 500)
+			time.Sleep(time.Millisecond * 100)
 			step.SetValue(1)
 		}
 	}
-
 }
 
-func resetMovePins() {
+func setActivePins(pins ...*gpiod.Line) {
 	red.SetValue(0)
 	green.SetValue(0)
 	yellow.SetValue(0)
+
+	for _, pin := range pins {
+		if pin != nil {
+			err := pin.SetValue(1)
+			if err != nil {
+				log.Fatalf("client: failed to set pin %v to 1\n", pin)
+			}
+		}
+	}
 }

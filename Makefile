@@ -5,7 +5,7 @@ SERVER := ./cmd/server
 PILOT := ./cmd/pilot
 
 client: $(CLIENT)/client.go
-	go build $(CLIENT)/client.go
+	go build $(CLIENT)/client.go $(CLIENT)/commands.go $(CLIENT)/state.go
 
 server: $(SERVER)/server.go
 	go build $(SERVER)/server.go

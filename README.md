@@ -2,6 +2,8 @@
 
 Take a look at [the project overview](project.pdf) to learn more.
 
+[Video](https://www.youtube.com/watch?v=WWUe42dH6nw)
+
 ### Commands
 
 - `w` start moving forward

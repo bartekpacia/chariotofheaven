@@ -17,10 +17,12 @@ var (
 	commands = make(chan string)
 )
 
-func main() {
+func init() {
 	log.SetFlags(0)
 	log.SetPrefix("server: ")
+}
 
+func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "you've connected to the chariot server")
 	})
@@ -31,18 +33,19 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func handleInWebsockets(w http.ResponseWriter, r *http.Request) {
+func handleInWebsockets(w http.ResponseWriter, req *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool {
 		return true
 	}
 
-	ws, err := upgrader.Upgrade(w, r, nil)
+	ws, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
 		log.Fatalln("failed to upgrade INPUT to websocket connection:", err)
 	}
 
 	log.Println("pilot connected")
 
+	// Receive commands from pilot and send them to client in a blocking manner
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
@@ -50,17 +53,18 @@ func handleInWebsockets(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		commands <- string(msg)
 		log.Printf("received command: %s\n", msg)
+		commands <- string(msg)
+		log.Printf("sent command: %s\n", msg)
 	}
 }
 
-func handleOutWebsockets(w http.ResponseWriter, r *http.Request) {
+func handleOutWebsockets(w http.ResponseWriter, req *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool {
 		return true
 	}
 
-	ws, err := upgrader.Upgrade(w, r, nil)
+	ws, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
 		log.Fatalln("failed to upgrade OUTPUT to websocket connection:", err)
 	}

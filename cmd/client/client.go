@@ -9,8 +9,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/gorilla/websocket"
 	"github.com/warthog618/gpiod"
 	"github.com/warthog618/gpiod/device/rpi"
@@ -43,45 +41,48 @@ var chariot Chariot
 
 func init() {
 	log.SetFlags(0)
+	log.SetPrefix("client: ")
+
 	flag.StringVar(&host, "host", "localhost", "host to connect to")
 	flag.StringVar(&port, "port", "8080", "host's port to connect to")
 	flag.IntVar(&interval, "interval", 50, "stepper motor interval")
+	flag.Parse()
 }
 
 func initGPIO() {
 	chip, err := gpiod.NewChip("gpiochip0", gpiod.WithConsumer("softwire"))
 	if err != nil {
-		log.Fatalln("client: failed to get chip:", err)
+		log.Fatalln("failed to get chip:", err)
 	}
 
 	red, err = chip.RequestLine(rpi.GPIO17, gpiod.AsOutput(1))
 	if err != nil {
-		log.Fatalln("client: failed to request GPIO14 (red):", err)
+		log.Fatalln("failed to request GPIO14 (red):", err)
 	}
 
 	green, err = chip.RequestLine(rpi.GPIO22, gpiod.AsOutput(1))
 	if err != nil {
-		log.Fatalln("client: failed to request GPIO15 (green):", err)
+		log.Fatalln("failed to request GPIO15 (green):", err)
 	}
 
 	yellow, err = chip.RequestLine(rpi.GPIO27, gpiod.AsOutput(1))
 	if err != nil {
-		log.Fatalln("client: failed to request GPIO15 (yellow):", err)
+		log.Fatalln("failed to request GPIO15 (yellow):", err)
 	}
 
 	servo, err = chip.RequestLine(rpi.GPIO10, gpiod.AsOutput())
 	if err != nil {
-		log.Fatalln("client: failed to request GPIO10 (servo):", err)
+		log.Fatalln("failed to request GPIO10 (servo):", err)
 	}
 
 	dir, err = chip.RequestLine(rpi.GPIO21, gpiod.AsOutput())
 	if err != nil {
-		log.Fatalln("client: failed to request GPIO21 (dir):", err)
+		log.Fatalln("failed to request GPIO21 (dir):", err)
 	}
 
 	step, err = chip.RequestLine(rpi.GPIO20, gpiod.AsOutput())
 	if err != nil {
-		log.Fatalln("client: failed to request GPIO20 (step):", err)
+		log.Fatalln("failed to request GPIO20 (step):", err)
 	}
 }
 
@@ -97,12 +98,11 @@ func initBlink() {
 }
 
 func main() {
-	flag.Parse()
 	signal.Notify(signalChan, os.Interrupt)
 	go func() {
 		<-signalChan
 		setActivePins()
-		fmt.Println("client: shutting down...")
+		log.Println("shutting down...")
 		os.Exit(0)
 	}()
 
@@ -117,9 +117,9 @@ func main() {
 
 	ws, err := connect(u)
 	if err != nil {
-		log.Fatalln("client: failed to connect to server:", err)
+		log.Fatalln("failed to connect to server:", err)
 	}
-	fmt.Println("client: connected to server")
+	log.Println("connected to server")
 
 	chariot = Chariot{
 		MovingState:      NotMoving,
@@ -135,7 +135,7 @@ func main() {
 func connect(u url.URL) (ws *websocket.Conn, err error) {
 	ws, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, fmt.Errorf("dial: %v", err)
 	}
 
 	return ws, nil
@@ -145,11 +145,11 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 	for {
 		msgType, msg, err := ws.ReadMessage()
 		if err != nil {
-			fmt.Println("client: failed to read message from websocket connection")
+			log.Println("failed to read message from websocket connection")
 
 			for {
 				time.Sleep(3 * time.Second)
-				fmt.Println("client: attempting to reconnect to server")
+				log.Println("attempting to reconnect to server")
 				ws, err = connect(u)
 				if err != nil {
 					continue
@@ -160,10 +160,10 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 		}
 
 		if msgType != websocket.TextMessage {
-			log.Fatalln("client: received message of type other than TextMessage")
+			log.Fatalln("received message of type other than TextMessage")
 		}
 
-		fmt.Printf("client: received command: %#v\n", string(msg))
+		log.Printf("received command: %#v\n", string(msg))
 
 		chariot.InterpretCommand(string(msg))
 		execute(&chariot)

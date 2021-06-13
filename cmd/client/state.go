@@ -26,15 +26,10 @@ func (cs *Chariot) InterpretCommand(command string) {
 	switch command {
 	case MoveForward:
 		cs.MovingState = MovingForward
-		return
-
 	case MoveBackward:
 		cs.MovingState = MovingBackward
-		return
-
 	case MoveStop:
 		cs.MovingState = NotMoving
-		return
 	}
 
 	// Turn commands
@@ -42,21 +37,15 @@ func (cs *Chariot) InterpretCommand(command string) {
 	case TurnLeft:
 		cs.TurningDirection = Left
 		cs.Turning = true
-		return
-
 	case TurnRight:
 		cs.TurningDirection = Right
 		cs.Turning = true
-		return
-
 	case TurnStop:
 		cs.Turning = false
-		return
 	}
 
 	if command == StopAll {
 		cs.MovingState = NotMoving
 		cs.Turning = false
-		return
 	}
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"flag"
-	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -18,8 +17,11 @@ var (
 
 func init() {
 	log.SetFlags(0)
+	log.SetPrefix("pilot: ")
+
 	flag.StringVar(&host, "host", "localhost", "host to connect to")
-	flag.StringVar(&port, "port", "8080", "host's port to connect to")
+	flag.StringVar(&port, "port", "8080", "host' port to connect to")
+	flag.Parse()
 }
 
 func main() {
@@ -31,10 +33,10 @@ func main() {
 
 	ws, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		log.Fatalln("pilot: failed to dial:", err)
+		log.Fatalln("failed to dial:", err)
 	}
 
-	fmt.Println("pilot: connected to server")
+	log.Println("connected to server")
 
 	inputAndSend(ws)
 }
@@ -44,12 +46,12 @@ func inputAndSend(ws *websocket.Conn) {
 		reader := bufio.NewReader(os.Stdin)
 		input, err := reader.ReadByte()
 		if err != nil {
-			log.Fatalln("pilot: failed to read from stdin:", err)
+			log.Fatalln("failed to read from stdin:", err)
 		}
 
 		err = ws.WriteMessage(websocket.TextMessage, []byte{input})
 		if err != nil {
-			log.Fatalln("pilot: failed to write message to websocket connection:", err)
+			log.Fatalln("failed to write message to websocket connection:", err)
 			return
 		}
 	}

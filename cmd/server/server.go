@@ -19,6 +19,8 @@ var (
 
 func main() {
 	log.SetFlags(0)
+	log.SetPrefix("server: ")
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "you've connected to the chariot server")
 	})
@@ -36,20 +38,20 @@ func handleInWebsockets(w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Fatalln("server: failed to upgrade INPUT to websocket connection:", err)
+		log.Fatalln("failed to upgrade INPUT to websocket connection:", err)
 	}
 
-	fmt.Println("server: pilot connected")
+	log.Println("pilot connected")
 
 	for {
 		_, msg, err := ws.ReadMessage()
 		if err != nil {
-			fmt.Println("server: pilot disconnected")
+			log.Println("pilot disconnected")
 			break
 		}
 
 		commands <- string(msg)
-		fmt.Printf("server: received command: %#v\n", string(msg))
+		log.Printf("received command: %s\n", msg)
 	}
 }
 
@@ -60,17 +62,17 @@ func handleOutWebsockets(w http.ResponseWriter, r *http.Request) {
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Fatalln("server: failed to upgrade OUTPUT to websocket connection:", err)
+		log.Fatalln("failed to upgrade OUTPUT to websocket connection:", err)
 	}
 
-	fmt.Println("server: client connected")
+	log.Println("client connected")
 
 	for {
 		event := <-commands
-		fmt.Printf("server: sent command: %#v\n", event)
+		log.Printf("sent command: %#v\n", event)
 		err = ws.WriteMessage(websocket.TextMessage, []byte(event))
 		if err != nil {
-			log.Fatalln("server: failed to write message to /out websocket connection:", err)
+			log.Fatalln("failed to write message to /out websocket connection:", err)
 		}
 	}
 }

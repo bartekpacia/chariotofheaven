@@ -1,12 +1,15 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 )
+
+var port string
 
 var (
 	upgrader = websocket.Upgrader{
@@ -20,6 +23,9 @@ var (
 func init() {
 	log.SetFlags(0)
 	log.SetPrefix("server: ")
+
+	flag.StringVar(&port, "port", "8080", "port to listen on")
+	flag.Parse()
 }
 
 func main() {
@@ -30,8 +36,8 @@ func main() {
 	http.HandleFunc("/in", handleInWebsockets)
 	http.HandleFunc("/out", handleOutWebsockets)
 
-	log.Println("will start on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Printf("started on port %s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 func handleInWebsockets(w http.ResponseWriter, req *http.Request) {

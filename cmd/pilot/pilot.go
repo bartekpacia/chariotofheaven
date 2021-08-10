@@ -36,7 +36,7 @@ func main() {
 		log.Fatalln("failed to dial:", err)
 	}
 
-	log.Println("connected to server")
+	log.Printf("connected to server at %s on port %s\n", host, port)
 
 	inputAndSend(ws)
 }

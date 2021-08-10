@@ -34,8 +34,8 @@ Take a look at [the project overview](project.pdf) to learn more.
 
 stepper motor driver: MP6500 Pololu 2966
 
-- STEP - GPIO20
+- STEP - GPIO20 (yellow diode)
 
-- DIR - GPIO21
+- DIR - GPIO21 (red diode)
 
   Red diode is ON when the direction is right. It is OFF when the direction is left.

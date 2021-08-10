@@ -30,6 +30,7 @@ func main() {
 	http.HandleFunc("/in", handleInWebsockets)
 	http.HandleFunc("/out", handleOutWebsockets)
 
+	log.Println("will start on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 

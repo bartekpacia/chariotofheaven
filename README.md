@@ -29,10 +29,11 @@ Take a look at [the project overview](project.pdf) to learn more.
 - servo - GPIO10
 
 **Stepper motor**
+
 stepper motor driver: MP6500 Pololu 2966
 
 - STEP - GPIO20
 
 - DIR - GPIO21
 
-  Red diode is red when the direction is lit when the direction is right. It is off when the direction is left.
+  Red diode is ON when the direction is right. It is OFF when the direction is left.

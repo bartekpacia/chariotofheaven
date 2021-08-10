@@ -23,9 +23,7 @@ var (
 	interval int
 )
 
-var (
-	signalChan = make(chan os.Signal, 1)
-)
+var signalChan = make(chan os.Signal, 1)
 
 // Pins used to communicate with physical parts.
 var (

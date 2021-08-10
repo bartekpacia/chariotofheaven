@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -45,6 +44,41 @@ func init() {
 	flag.StringVar(&port, "port", "8080", "host's port to connect to")
 	flag.IntVar(&interval, "interval", 50, "stepper motor interval")
 	flag.Parse()
+}
+
+func main() {
+	signal.Notify(signalChan, os.Interrupt)
+	go func() {
+		<-signalChan
+		setActivePins()
+		log.Println("shutting down...")
+		os.Exit(0)
+	}()
+
+	initGPIO()
+	initBlink()
+
+	u := url.URL{
+		Scheme: "ws",
+		Host:   host + ":" + port,
+		Path:   "/out",
+	}
+
+	ws, err := connect(u)
+	if err != nil {
+		log.Fatalln("failed to connect to server:", err)
+	}
+	log.Printf("connected to server at %s on port %s\n", host, port)
+
+	chariot = Chariot{
+		MovingState:      NotMoving,
+		TurningDirection: Left,
+		Turning:          false,
+	}
+
+	go startTurner()
+
+	listenWebsockets(u, ws)
 }
 
 func initGPIO() {
@@ -95,45 +129,10 @@ func initBlink() {
 	setActivePins()
 }
 
-func main() {
-	signal.Notify(signalChan, os.Interrupt)
-	go func() {
-		<-signalChan
-		setActivePins()
-		log.Println("shutting down...")
-		os.Exit(0)
-	}()
-
-	initGPIO()
-	initBlink()
-
-	u := url.URL{
-		Scheme: "ws",
-		Host:   host + ":" + port,
-		Path:   "/out",
-	}
-
-	ws, err := connect(u)
-	if err != nil {
-		log.Fatalln("failed to connect to server:", err)
-	}
-	log.Println("connected to server")
-
-	chariot = Chariot{
-		MovingState:      NotMoving,
-		TurningDirection: Left,
-		Turning:          false,
-	}
-
-	go startTurner()
-
-	listenWebsockets(u, ws)
-}
-
 func connect(u url.URL) (ws *websocket.Conn, err error) {
 	ws, _, err = websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		return nil, fmt.Errorf("dial: %v", err)
+		return nil, err
 	}
 
 	return ws, nil

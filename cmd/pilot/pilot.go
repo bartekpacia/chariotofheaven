@@ -33,9 +33,8 @@ func main() {
 
 	ws, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		log.Fatalln("failed to dial:", err)
+		log.Fatalln("failed to connect to server:", err)
 	}
-
 	log.Printf("connected to server at %s on port %s\n", host, port)
 
 	inputAndSend(ws)

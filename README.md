@@ -28,7 +28,9 @@ Take a look at [the project overview](project.pdf) to learn more.
 
 **Servo**
 
-- servo - GPIO10
+- PWM - GPIO18
+
+~~- servo - GPIO10~~ (probably not???)
 
 **Stepper motor**
 

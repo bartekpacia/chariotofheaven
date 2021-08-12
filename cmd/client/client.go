@@ -42,7 +42,7 @@ func init() {
 
 	flag.StringVar(&host, "host", "localhost", "host to connect to")
 	flag.StringVar(&port, "port", "8080", "host's port to connect to")
-	flag.IntVar(&interval, "interval", 1, "stepper motor interval (ms)")
+	flag.IntVar(&interval, "interval", 200, "stepper motor interval (microseconds)")
 	flag.Parse()
 }
 
@@ -191,9 +191,9 @@ func startTurner() {
 	for {
 		if chariot.Turning {
 			step.SetValue(1)
-			time.Sleep(time.Millisecond * time.Duration(interval))
+			time.Sleep(time.Microsecond * time.Duration(interval))
 			step.SetValue(0)
-			time.Sleep(time.Millisecond * time.Duration(interval))
+			time.Sleep(time.Microsecond * time.Duration(interval))
 		} else {
 			step.SetValue(0)
 		}

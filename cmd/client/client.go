@@ -42,7 +42,7 @@ func init() {
 
 	flag.StringVar(&host, "host", "localhost", "host to connect to")
 	flag.StringVar(&port, "port", "8080", "host's port to connect to")
-	flag.IntVar(&interval, "interval", 3, "stepper motor interval (ms)")
+	flag.IntVar(&interval, "interval", 1, "stepper motor interval (ms)")
 	flag.Parse()
 }
 

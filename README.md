@@ -22,9 +22,9 @@ Take a look at [the project overview](project.pdf) to learn more.
 
 **Info diodes**
 
-- red - GPIO17
+- red - GPIO4
+- yellow - GPIO17
 - green - GPIO22
-- yellow - GPIO27
 
 **Servo**
 

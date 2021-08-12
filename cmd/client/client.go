@@ -122,12 +122,23 @@ func initGPIO() {
 		log.Fatalln("failed to initialize GPIO:", err)
 	}
 
-	red = rpio.Pin(17)
+	red = rpio.Pin(4)
+	red.Output()
+
+	yellow = rpio.Pin(17)
+	yellow.Output()
+
 	green = rpio.Pin(22)
-	yellow = rpio.Pin(27)
+	green.Output()
+
 	servo = rpio.Pin(10)
+	servo.Output()
+
 	dir = rpio.Pin(21)
+	dir.Output()
+
 	step = rpio.Pin(20)
+	step.Output()
 }
 
 // blink blinks red, green and yellow diodes twice to signal that the program

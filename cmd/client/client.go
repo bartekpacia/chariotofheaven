@@ -161,9 +161,11 @@ func execute(c *Chariot) {
 		setPinsHigh(&green)
 
 	case MovingBackward:
+		setPinsLow(&red, &green, &yellow)
 		setPinsHigh(&red)
 
 	case NotMoving:
+		setPinsLow(&red, &green, &yellow)
 		setPinsHigh(&yellow)
 	}
 

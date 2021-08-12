@@ -201,7 +201,7 @@ func setPinsHigh(pins ...*rpio.Pin) {
 func setPinsLow(pins ...*rpio.Pin) {
 	for _, pin := range pins {
 		if pin != nil {
-			pin.High()
+			pin.Low()
 		}
 	}
 }

@@ -1,52 +1,42 @@
 package main
 
-type MovingState int
-
 const (
-	MovingForward MovingState = iota + 1
+	MovingForward = iota + 1
 	MovingBackward
 	NotMoving
 )
 
-type TurningDirection int
-
 const (
-	Left TurningDirection = iota + 1
-	Right
+	TurningLeft = iota + 1
+	TurningRight
+	NotTurning
 )
 
-type Chariot struct {
-	MovingState      MovingState
-	TurningDirection TurningDirection
-	Turning          bool
+type ChariotState struct {
+	MovingState  int
+	TurningState int
 }
 
-func (cs *Chariot) InterpretCommand(command string) {
+// MapCommandToState maps a command (a single char) to chariot's state.
+func (c *ChariotState) MapCommandToState(cmd string) {
+	switch cmd {
 	// Move commands
-	switch command {
-	case MoveForward:
-		cs.MovingState = MovingForward
-	case MoveBackward:
-		cs.MovingState = MovingBackward
-	case MoveStop:
-		cs.MovingState = NotMoving
-	}
-
+	case CmdMoveForward:
+		c.MovingState = MovingForward
+	case CmdMoveBackward:
+		c.MovingState = MovingBackward
+	case CmdMoveStop:
+		c.MovingState = NotMoving
 	// Turn commands
-	switch command {
-	case TurnLeft:
-		cs.TurningDirection = Left
-		cs.Turning = true
-	case TurnRight:
-		cs.TurningDirection = Right
-		cs.Turning = true
-	case TurnStop:
-		cs.Turning = false
-	}
-
+	case CmdTurnLeft:
+		c.TurningState = TurningLeft
+	case CmdTurnRight:
+		c.TurningState = TurningRight
+	case CmdTurnStop:
+		c.TurningState = NotTurning
 	// Stop command
-	if command == StopAll {
-		cs.MovingState = NotMoving
-		cs.Turning = false
+	case CmdStopAll:
+		c.MovingState = NotMoving
+		c.TurningState = NotTurning
 	}
 }

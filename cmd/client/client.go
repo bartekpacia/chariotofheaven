@@ -31,7 +31,7 @@ var (
 	step   rpio.Pin
 )
 
-var chariot Chariot
+var chariot ChariotState
 
 func init() {
 	log.SetFlags(0)
@@ -65,7 +65,14 @@ func init() {
 	step = rpio.Pin(20)
 	step.Output()
 
-	blink()
+	time.Sleep(time.Millisecond * 500)
+	setPinsHigh(&red, &green, &yellow)
+	time.Sleep(time.Millisecond * 500)
+	setPinsLow(&red, &green, &yellow)
+	time.Sleep(time.Millisecond * 500)
+	setPinsHigh(&red, &green, &yellow)
+	time.Sleep(time.Millisecond * 500)
+	setPinsLow(&red, &green, &yellow)
 }
 
 func main() {
@@ -89,10 +96,9 @@ func main() {
 	}
 	log.Printf("connected to server at %s on port %s\n", host, port)
 
-	chariot = Chariot{
-		MovingState:      NotMoving,
-		TurningDirection: Left,
-		Turning:          false,
+	chariot = ChariotState{
+		MovingState:  NotMoving,
+		TurningState: NotTurning,
 	}
 
 	go startTurner()
@@ -131,25 +137,13 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 			log.Fatalln("received message of type other than TextMessage")
 		}
 
-		chariot.InterpretCommand(string(msg))
-		execute(&chariot)
+		cmd := string(msg)
+		chariot.MapCommandToState(cmd)
+		startMover(&chariot)
 	}
 }
 
-// blink blinks red, green and yellow diodes twice to signal that the program
-// is starting.
-func blink() {
-	time.Sleep(time.Millisecond * 500)
-	setPinsHigh(&red, &green, &yellow)
-	time.Sleep(time.Millisecond * 500)
-	setPinsLow(&red, &green, &yellow)
-	time.Sleep(time.Millisecond * 500)
-	setPinsHigh(&red, &green, &yellow)
-	time.Sleep(time.Millisecond * 500)
-	setPinsLow(&red, &green, &yellow)
-}
-
-func execute(c *Chariot) {
+func startMover(c *ChariotState) {
 	switch c.MovingState {
 	case MovingForward:
 		setPinsLow(&red, &green, &yellow)
@@ -163,23 +157,24 @@ func execute(c *Chariot) {
 		setPinsLow(&red, &green, &yellow)
 		setPinsHigh(&yellow)
 	}
-
-	switch c.TurningDirection {
-	case Left:
-		dir.Low()
-	case Right:
-		dir.High()
-	}
 }
 
 func startTurner() {
 	for {
-		if chariot.Turning {
+		switch chariot.TurningState {
+		case TurningLeft:
+			dir.Low()
 			step.High()
 			time.Sleep(time.Millisecond * time.Duration(interval))
 			step.Low()
 			time.Sleep(time.Millisecond * time.Duration(interval))
-		} else {
+		case TurningRight:
+			dir.High()
+			step.High()
+			time.Sleep(time.Millisecond * time.Duration(interval))
+			step.Low()
+			time.Sleep(time.Millisecond * time.Duration(interval))
+		case NotTurning:
 			step.Low()
 		}
 	}

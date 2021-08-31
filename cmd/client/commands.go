@@ -1,15 +1,15 @@
 package main
 
 const (
-	MoveForward  string = "w"
-	MoveBackward string = "s"
-	MoveStop     string = "q"
+	CmdMoveForward  string = "w"
+	CmdMoveBackward string = "s"
+	CmdMoveStop     string = "q"
 )
 
 const (
-	TurnLeft  string = "a"
-	TurnRight string = "d"
-	TurnStop  string = "z"
+	CmdTurnLeft  string = "a"
+	CmdTurnRight string = "d"
+	CmdTurnStop  string = "z"
 )
 
-const StopAll = "x"
+const CmdStopAll = "x"

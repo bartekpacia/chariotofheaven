@@ -19,7 +19,7 @@ var (
 	interval int
 )
 
-var signalChan = make(chan os.Signal, 1)
+var signalChan = make(chan os.Signal)
 
 // Pins used to communicate with physical parts.
 var (
@@ -41,6 +41,31 @@ func init() {
 	flag.StringVar(&port, "port", "8080", "host's port to connect to")
 	flag.IntVar(&interval, "interval", 1, "stepper motor interval (ms)")
 	flag.Parse()
+
+	err := rpio.Open()
+	if err != nil {
+		log.Fatalln("failed to initialize GPIO:", err)
+	}
+
+	red = rpio.Pin(4)
+	red.Output()
+
+	yellow = rpio.Pin(17)
+	yellow.Output()
+
+	green = rpio.Pin(22)
+	green.Output()
+
+	servo = rpio.Pin(10)
+	servo.Output()
+
+	dir = rpio.Pin(21)
+	dir.Output()
+
+	step = rpio.Pin(20)
+	step.Output()
+
+	blink()
 }
 
 func main() {
@@ -51,9 +76,6 @@ func main() {
 		log.Println("clean up and shutdown")
 		os.Exit(0)
 	}()
-
-	initGPIO()
-	blink()
 
 	u := url.URL{
 		Scheme: "ws",
@@ -109,36 +131,9 @@ func listenWebsockets(u url.URL, ws *websocket.Conn) {
 			log.Fatalln("received message of type other than TextMessage")
 		}
 
-		log.Printf("received command: %#v\n", string(msg))
-
 		chariot.InterpretCommand(string(msg))
 		execute(&chariot)
 	}
-}
-
-func initGPIO() {
-	err := rpio.Open()
-	if err != nil {
-		log.Fatalln("failed to initialize GPIO:", err)
-	}
-
-	red = rpio.Pin(4)
-	red.Output()
-
-	yellow = rpio.Pin(17)
-	yellow.Output()
-
-	green = rpio.Pin(22)
-	green.Output()
-
-	servo = rpio.Pin(10)
-	servo.Output()
-
-	dir = rpio.Pin(21)
-	dir.Output()
-
-	step = rpio.Pin(20)
-	step.Output()
 }
 
 // blink blinks red, green and yellow diodes twice to signal that the program

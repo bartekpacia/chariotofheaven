@@ -44,6 +44,7 @@ func (cs *Chariot) InterpretCommand(command string) {
 		cs.Turning = false
 	}
 
+	// Stop command
 	if command == StopAll {
 		cs.MovingState = NotMoving
 		cs.Turning = false
